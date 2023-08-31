@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management</title>
+    <link rel="stylesheet" type="text/css" href="index.css">
+</head>
+<body>
+    <h1>User Management</h1>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>User ID</th>
+                <th>User Name</th>
+                <th>Date of Birth</th>
+                <th>Email</th>
+                <th>Contact</th>
+                <th>Country</th>
+                <th>CreatedAt</th>
+                <th>UpdatedAt</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="userTable"></tbody>
+    </table>
+    
+    <button id="addUserButton">Add User</button>
+    
+    <div id="addUserModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Add User</h2>
+            <form id="addUserForm">
+                <label for="userName">User Name:</label>
+                <input type="text" id="userName" name="userName" required>
+                
+                <label for="userDOB">Date of Birth:</label>
+                <input type="date" id="userDOB" name="userDOB" required>
+                
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+                
+                <label for="contact">Contact:</label>
+                <input type="text" id="contact" name="contact" required>
+                
+                <label for="country">Country:</label>
+                <input type="text" id="country" name="country" required>
+
+                <label for="createdAt">createdAt:</label>
+                <input type="text" id="createdAt" name="createdAt" required>
+
+                <label for="updatedAt">updatedAt:</label>
+                <input type="text" id="updatedAt" name="updatedAt" required>
+                
+                <button type="submit">Add User</button>
+                <button type="button" id="cancelAdd">Cancel</button>
+            </form>
+        </div>
+    </div>
+    
+    <div id="updateUserModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Update User</h2>
+            <form id="updateUserForm">
+                <input type="hidden" id="updateUserID">
+
+                <label for="updateUserName">User Name:</label>
+                <input type="text" id="updateUserName" required><br>
+
+                <label for="updateUserDOB">Date of Birth:</label>
+                <input type="date" id="updateUserDOB" required><br>
+
+                <label for="updateEmail">Email:</label>
+                <input type="email" id="updateEmail" required><br>
+
+                <label for="updateContact">Contact:</label>
+                <input type="text" id="updateContact" required><br>
+
+                <label for="updateCountry">Country:</label>
+                <input type="text" id="updateCountry" required><br>
+
+                <label for="updateCreatedAt">createdAt:</label>
+                <input type="text" id="updateCreatedAt" required><br>
+
+                <label for="updateUpdatedAt">updatedAt:</label>
+                <input type="text" id="updateUpdatedAt" required><br>
+
+                <button type="submit">Update User</button>
+            </form>
+        </div>
+    </div>
+    
+    <div id="deleteUserModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Delete User</h2>
+            <p>Are you sure you want to delete this user?</p>
+            <button id="confirmDelete">Delete</button>
+            <button id="cancelDelete">Cancel</button>
+        </div>
+    </div>
+    
+    <script>
+        function populateUserTable() {
+            fetch('/users')
+                .then((response) => response.json())
+                .then((users) => {
+                    const userTable = document.getElementById('userTable');
+                    userTable.innerHTML = '';
+                    
+                    users.forEach((user) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${user.userID}</td>
+                            <td>${user.userName}</td>
+                            <td>${user.userDOB}</td>
+                            <td>${user.email}</td>
+                            <td>${user.contact}</td>
+                            <td>${user.country}</td>
+                            <td>${user.createdAt}</td>
+                            <td>${user.updatedAt}</td>
+                            <td>
+                                <button class="updateUser">Update</button>
+                                <button class="deleteUser">Delete</button>
+                            </td>
+                        `;
+                        
+                        const updateUserButton = row.querySelector('.updateUser');
+                        updateUserButton.addEventListener('click', () => handleUpdateUser(user));
+                        
+                        
+                        const deleteUserButton = row.querySelector('.deleteUser');
+                        deleteUserButton.addEventListener('click', () => handleDeleteUser(user));
+                        
+                        userTable.appendChild(row);
+                    });
+                })
+                .catch((error) => {
+                    console.error('Error fetching user data:', error);
+                });
+        }
+        
+        function handleAddUser(event) {
+            event.preventDefault();
+            
+            const userName = document.getElementById('userName').value;
+            const userDOB = document.getElementById('userDOB').value;
+            const email = document.getElementById('email').value;
+            const contact = document.getElementById('contact').value;
+            const country = document.getElementById('country').value;
+            const createdAt = document.getElementById('createdAt').value;
+            const updatedAt = document.getElementById('updatedAt').value;
+            
+            const newUser = {
+                userName,
+                userDOB,
+                email,
+                contact,
+                country,
+                createdAt,
+                updatedAt,
+            };
+            
+            fetch('/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(newUser),
+            })
+            .then((response) => response.json())
+            .then(() => {
+                document.getElementById('addUserModal').style.display = 'none';
+                populateUserTable();
+            })
+            .catch((error) => {
+                console.error('Error adding user:', error);
+            });
+        }
+        console.log('updateusertakaaya!');
+
+        function handleUpdateUser(user) {
+            // Fill the update form with user data and show the modal
+            document.getElementById('updateUserID').value = user.userID;
+            document.getElementById('updateUserName').value = user.userName;
+            document.getElementById('updateUserDOB').value = user.userDOB.split('T')[0]; 
+            document.getElementById('updateEmail').value = user.email;
+            document.getElementById('updateContact').value = user.contact;
+            document.getElementById('updateCountry').value = user.country;
+            document.getElementById('updateCreatedAt').value = user.createdAt;
+            document.getElementById('updateUpdatedAt').value = user.updatedAt;
+            document.getElementById('updateUserModal').style.display = 'block';
+
+            console.log('updateuserkeandargaya!!');
+
+            fetch(`/update/${user.userID}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(user),
+            })
+            .then((response) => response.json())
+            .then(() => {
+                document.getElementById('updateUserModal').style.display = 'none';
+                populateUserTable();
+            })
+            .catch((error) => {
+                console.error('Error updating user:', error);
+            });
+            console.log('updateusersegya!!!');
+
+        }
+
+        function handleDeleteUser(user) {
+           
+            const confirmed = confirm('Are you sure you want to delete this user?');
+            if (confirmed) {
+                fetch(`/delete/${user.userID}`, {
+                    method: 'DELETE',
+                })
+                .then(() => {
+                    populateUserTable(); 
+                })
+                .catch((error) => {
+                    console.error('Error deleting user:', error);
+                });
+            } 
+        }
+
+        document.getElementById('addUserForm').addEventListener('submit', handleAddUser);
+        document.getElementById('addUserButton').addEventListener('click', () => {
+           
+            document.getElementById('addUserForm').reset();
+            document.getElementById('addUserModal').style.display = 'block';
+        });
+
+        document.getElementById('cancelAdd').addEventListener('click', () => {
+            
+            document.getElementById('addUserModal').style.display = 'none';
+        });
+        
+        populateUserTable();
+    </script>
+</body>
+</html>
